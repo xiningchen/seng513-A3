@@ -15,7 +15,7 @@ let chatHistory= [];
 // constants
 const colorCommand = "/nickcolor";
 const unCommand = "/nick";
-const commandMsg = "Type /nickcolor RRGGBB to change your message color.\nType /nick <new nickname> to change your nickname.";
+const commandMsg = "Type /nickcolor RRGGBB to change your message color. Type /nick <new nickname> to change your nickname.";
 const maxPopulation = 100;
 
 
@@ -82,7 +82,7 @@ io.on('connection', function(socket){
             let newUser = {id: socket.id, key: myID, UN: registeredUsers[findKey(myID, registeredUsers)].UN, color: "#B7501C"};
             currentUsers.push(newUser);
 
-            console.log("New user = " + newUser.UN);
+            //console.log("New user = " + newUser.UN);
 
             // populate chat history
             if (chatHistory.length>0){
@@ -101,7 +101,7 @@ io.on('connection', function(socket){
             io.emit('updateUserList', getCurrentUNs());
         }else{
             // user is active, hence send them an error message
-            console.log("do you have duplicate tabs?");
+            // console.log("do you have duplicate tabs?");
             // otherwise, user already exist, they are trying to open 2 chat windows in same browser
             socket.emit('duplicate tab', "You are already in the chat using another tab!");
         }
@@ -111,7 +111,7 @@ io.on('connection', function(socket){
 
     // user disconnects
     socket.on('disconnect', function(){
-        console.log("DISCONNECT REQEUST!!!");
+        //console.log("DISCONNECT REQEUST!!!");
 
         // delete active user
         for(let u in currentUsers){
