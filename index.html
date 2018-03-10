@@ -1,0 +1,229 @@
+<!doctype html>
+<html>
+  <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1">
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+      <link href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah|Pacifico" rel="stylesheet">
+
+      <style>
+          * { margin: 0; padding: 0; box-sizing: border-box; }
+          body {
+              font: 20px Helvetica, Arial;
+              font-family: 'Pacifico', cursive;
+              font-family: 'Gloria Hallelujah', cursive;
+              color: #B7501C;
+              background-color: #ffeb72;
+          }
+          form {
+              background: #ffeb72;
+              padding: 15px;
+          }
+          form input {
+              border: 5px;
+              border-style: solid;
+              border-color: #b1d61e;
+              padding: 3px;
+              height: 50px;
+              width: 100%;
+          }
+
+          #messageBoard {
+              border: 5px;
+              border-style: solid;
+              border-color: #b1d61e;
+              margin: 14px 14px 14px 14px;
+              display: flex;
+              justify-content: flex-end;
+              flex-direction: column;
+              background-color: white;
+                }
+
+          #userBoard {
+              border: 5px;
+              border-style: solid;
+              border-color: #b1d61e;
+              margin: 14px 14px 14px 14px;
+              display: flex;
+              justify-content: flex-end;
+              flex-direction: column;
+              background-color: white;
+              }
+
+
+          #messages {
+              list-style-type: none;
+              margin: 0;
+              padding: 0;
+              overflow: scroll;
+          }
+
+          #usernames {
+              list-style-type: none;
+              margin: 0;
+              padding: 0;
+              overflow: scroll;
+          }
+
+          #usernames li {
+              padding: 5px 10px;
+          }
+
+          #messages li {
+              padding: 5px 10px;
+          }
+
+          #inputBox {
+              grid-column: 1/ span 2;
+          }
+
+
+          .myMsg {
+              font-weight: bold;
+              background-color: #f6ffd2;
+          }
+          .serverMsg {
+              font-style: italic;
+              color: #9E9FAE;
+          }
+          .grid-container {
+              display: grid;
+              grid-template-columns: minmax(500px, 80%) minmax(250px, auto);
+              grid-template-rows: minmax(50px, 50px) minmax(200px, 700px) minmax(50px, 100px);
+              grid-gap: 10px 10px;
+              height: 100vh;
+          }
+          .titleContainer {
+              margin: 15px 15px 15px 15px;
+              font-size: 30px;
+          }
+
+      </style>
+
+      <title>SENG 513 A3 ChatRoom</title>
+  </head>
+
+ <script src="/socket.io/socket.io.js"></script>
+ <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+
+  <script>
+      $(function () {
+          var socket = io();
+          $('form').submit(function () {
+              socket.emit('chat message', $('#m').val());
+              $('#m').val('');
+              return false;
+          });
+
+
+          socket.on('change UN', function (res) {
+              if (res.status === 1) {
+                  // update username bar
+                  $('#userTitle').html("You are " + res.msg);
+
+              } else {
+                  $('#messages').append($('<li class="serverMsg">').text(res.msg));
+                  $('#messages').scrollTop($('#messages')[0].scrollHeight);
+              }
+          });
+
+          socket.on('chat message', function (res) {
+              let cm = $('<li>');
+              let nameField = $('<span>').text(res.name);
+              nameField.css("color", res.color);
+
+
+              cm.append(res.date);
+              cm.append(nameField);
+              cm.append(res.msg);
+
+              let messageDiv = $('#messages');
+              messageDiv.append(cm);
+              $('#messages').scrollTop($('#messages')[0].scrollHeight);
+          });
+
+
+          socket.on('my message', function (res) {
+              let mm = $('<li class="myMsg">');
+              let nameField = $('<span>').text(res.name);
+              nameField.css("color", res.color);
+
+              mm.append(res.date);
+              mm.append(nameField);
+              mm.append(res.msg);
+
+              let messageDiv = $('#messages');
+              messageDiv.append(mm);
+              $('#messages').scrollTop($('#messages')[0].scrollHeight);
+          });
+
+
+          socket.on('updateUserList', function (username) {
+              // loop through user list and populate usernames board
+              $('#usernames').empty();
+
+              for (let i = 0; i < username.length; i++) {
+                  $('#usernames').append($('<li>').text(username[i]));
+              }
+          });
+
+
+          socket.on('who are you', function (msg) {
+              let cookie = document.cookie.split("=");
+
+              socket.emit('my name is', cookie[1]);
+          });
+
+          socket.on('welcome', function (res) {
+              $('#userTitle').html("You are " + res.un);
+
+              // this is a message from server
+              $('#messages').append($('<li class="serverMsg">').text("You are " + res.un + "."));
+              $('#messages').append($('<li class="serverMsg">').text(res.msg));
+
+              $('#messages').scrollTop($('#messages')[0].scrollHeight);
+          });
+
+          socket.on('duplicate tab', function (errorMsg) {
+              console.log("dupe");
+              // disable input box and print error message
+              $('#m').prop('disabled', true);
+              $('#m').css("background-color", "grey");
+              $('#messages').append($('<li class="serverMsg">').text(errorMsg));
+          });
+
+      })
+
+
+  </script>
+
+ <body>
+    <div class="grid-container">
+        <div class="titleContainer">
+            <p id="userTitle"></p>
+        </div>
+
+        <div class ="titleContainer">
+            <p>Online Users</p>
+        </div>
+
+        <div id="messageBoard">
+            <ul id="messages"></ul>
+        </div>
+
+        <div id="userBoard">
+            <ul id="usernames"></ul>
+        </div>
+
+        <div id="inputBox">
+            <form action="">
+                <input id="m" autocomplete="off" />
+            </form>
+        </div>
+    </div>
+ </body>
+</html>
